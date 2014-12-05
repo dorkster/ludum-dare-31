@@ -1,0 +1,16 @@
+game
+game.exe
+CMakeFiles/
+CMakeCache.txt
+Makefile
+cmake_install.cmake
+install_manifest.txt
+# ignore also vim swap files
+.*.sw*
+
+# ignore copy-on-write backup files
+*~
+
+# performance and benchmarking items
+perf.data
+gmon.out
