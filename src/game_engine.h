@@ -16,17 +16,4 @@ public:
     bool done;
 
 private:
-    Animation current_animation;
-    Animation animation_1;
-    Animation animation_2;
-    Sound test_sound;
-    FPoint pos;
-    double angle;
-    float speed;
-    float turn_speed;
-    bool flashing;
-
-    FRect screen_rect;
-
-    Text test_text;
 };
