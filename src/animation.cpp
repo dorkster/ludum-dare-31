@@ -12,6 +12,11 @@ Animation::Animation()
 Animation::~Animation() {
 }
 
+void Animation::setTo(Animation& other) {
+    other.image.ref();
+    (*this) = other;
+}
+
 void Animation::load(const std::string& _filename, int _index, unsigned frame_count, unsigned duration, int _loops, int frame_w, int frame_h, int offset_x, int offset_y)
 {
     filename = _filename;

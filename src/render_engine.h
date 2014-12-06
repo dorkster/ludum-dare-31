@@ -27,10 +27,11 @@ public:
     void renderImage(const Image* image);
     void renderText(Image* image, const std::string& text);
 
+    SDL_Texture* cacheLookup(const std::string& filename);
+
 private:
     void cacheStore(const Image* image);
     void cacheRemove(const std::string& filename);
-    SDL_Texture* cacheLookup(const std::string& filename);
 
     SDL_Window *window;
     SDL_Renderer *renderer;
@@ -52,6 +53,7 @@ public:
     void setPos(int _x, int _y);
     void setClip(int _x, int _y, int _w, int _h);
     void setAngle(double _angle);
+    void ref();
 
     std::string filename;
     SDL_Texture* texture;

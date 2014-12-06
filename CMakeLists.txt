@@ -73,9 +73,13 @@ EndIf (NOT SDL2TTF_FOUND)
 
 Set (GAME_SOURCES
     ./src/animation.cpp
+    ./src/enemy.cpp
     ./src/engines.cpp
     ./src/game_engine.cpp
     ./src/input_engine.cpp
+    ./src/map_engine.cpp
+    ./src/player.cpp
+    ./src/powerup.cpp
     ./src/render_engine.cpp
     ./src/sound_engine.cpp
     ./src/text.cpp
@@ -86,9 +90,13 @@ Set (GAME_SOURCES
 Set (GAME_HEADERS
     ./src/animation.h
     ./src/common.h
+    ./src/enemy.h
     ./src/engines.h
     ./src/game_engine.h
     ./src/input_engine.h
+    ./src/map_engine.h
+    ./src/player.h
+    ./src/powerup.h
     ./src/render_engine.h
     ./src/sound_engine.h
     ./src/text.h

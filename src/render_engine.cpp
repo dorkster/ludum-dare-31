@@ -12,24 +12,25 @@ RenderEngine::RenderEngine()
     SDL_DisplayMode desktop;
     SDL_GetDesktopDisplayMode(0, &desktop);
 
-    window = SDL_CreateWindow("game",
-                              SDL_WINDOWPOS_CENTERED,
-                              SDL_WINDOWPOS_CENTERED,
-                              desktop.w, desktop.h,
-                              SDL_WINDOW_FULLSCREEN_DESKTOP);
     // window = SDL_CreateWindow("game",
     //                           SDL_WINDOWPOS_CENTERED,
     //                           SDL_WINDOWPOS_CENTERED,
-    //                           640, 480,
-    //                           0);
+    //                           desktop.w, desktop.h,
+    //                           SDL_WINDOW_FULLSCREEN_DESKTOP);
+    window = SDL_CreateWindow("game",
+                              SDL_WINDOWPOS_CENTERED,
+                              SDL_WINDOWPOS_CENTERED,
+                              672, 384,
+                              0);
 
     if (SOFTWARE_RENDER)
         renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
     else
         renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE | SDL_RENDERER_PRESENTVSYNC);
 
-    VIEW_H = 240;
-    VIEW_W = (int)((float)desktop.w * ((float)VIEW_H / (float)desktop.h));
+    VIEW_H = 128;
+    // VIEW_W = (int)((float)desktop.w * ((float)VIEW_H / (float)desktop.h));
+    VIEW_W = 224;
 
     // SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
     SDL_RenderSetLogicalSize(renderer, VIEW_W, VIEW_H);
@@ -42,7 +43,7 @@ RenderEngine::RenderEngine()
 RenderEngine::~RenderEngine() {
     for (unsigned i=0; i<cache.size(); ++i) {
         if (cache[i].ref > 0)
-            logInfo("RenderEngine: Non-zero texture cache size when exiting.\n");
+            logInfo("RenderEngine: Image file '%s' still has %d references\n", cache[i].filename.c_str(), cache[i].ref);
     }
 
     if (font)
@@ -146,8 +147,8 @@ void RenderEngine::cacheRemove(const std::string& filename) {
                 // logInfo("Deleted image: %s\n", filename.c_str());
                 SDL_DestroyTexture(cache[i].texture);
                 cache.erase(cache.begin()+i);
-                return;
             }
+            return;
         }
     }
 }
@@ -223,4 +224,9 @@ void Image::setClip(int _x, int _y, int _w, int _h) {
 
 void Image::setAngle(double _angle) {
     angle = _angle;
+}
+
+void Image::ref() {
+    if (render_engine)
+        render_engine->cacheLookup(filename);
 }

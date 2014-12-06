@@ -10,10 +10,10 @@ InputEngine::InputEngine()
 
     binding[ACCEPT] = SDLK_RETURN;
     binding[CANCEL] = SDLK_ESCAPE;
-    binding[LEFT] = SDLK_LEFT;
-    binding[RIGHT] = SDLK_RIGHT;
-    binding[UP] = SDLK_UP;
-    binding[DOWN] = SDLK_DOWN;
+    binding[LEFT] = SDLK_a;
+    binding[RIGHT] = SDLK_d;
+    binding[UP] = SDLK_w;
+    binding[DOWN] = SDLK_s;
 }
 
 InputEngine::~InputEngine() {

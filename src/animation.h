@@ -8,6 +8,7 @@ class Animation {
 public:
     Animation();
     ~Animation();
+    void setTo(Animation& other);
     void load(const std::string& _filename, int _index, unsigned frames, unsigned duration, int _loops, int frame_w, int frame_h, int offset_x, int offset_y);
     void logic();
     void render();
