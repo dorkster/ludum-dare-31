@@ -1,0 +1,18 @@
+### Noman's Dungeon
+
+Gameplay:
+
+Get to the bottom, get the treasure, and get back to the top.
+
+Building:
+
+Requires SDL2, SDL2 image, SDL2 ttf, and SDL mixer
+
+Controls:
+
+- WASD moves the cursor
+- Enter executes an action on the cursor position
+- F toggles fullscreen
+- R to respawn on win/loss
+- Esc to exit
+

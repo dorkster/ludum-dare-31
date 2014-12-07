@@ -420,7 +420,7 @@ void MapEngine::spawnPowerups() {
     int fail_count = 10; // prevent infinite loop
     while (spawn_count > 0) {
         Point spawn_pos;
-        spawn_pos.x = (rand() % (MAP_W-2)) + 1;
+        spawn_pos.x = (rand() % (MAP_W-3)) + 1; // don't spawn powerups in the last column, since the treasure might go there
         spawn_pos.y = (rand() % (MAP_H-2)) + 1;
 
         int type = rand() % 3;
