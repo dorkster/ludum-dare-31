@@ -11,64 +11,23 @@ Enemy::Enemy(const int type) {
         defense = 2;
     }
 
-    is_turn = false;
-    current_anim.setTo(anim_normal);
-
-    hp_bar.load(render_engine, "data/hp_bar.png");
-
-    player = NULL;
-    animating = false;
+    init();
 }
 
 Enemy::~Enemy() {
 }
 
-void Enemy::render() {
-    current_anim.logic();
+void Enemy::init() {
+    is_turn = false;
+    current_anim.setTo(anim_normal);
 
-    if (animating && current_anim.isFinished()) {
-        current_anim.setTo(anim_normal);
-        animating = false;
-    }
-
-    if (hp > 0 || animating) {
-        current_anim.setPos(pos.x*TILE_SIZE, pos.y*TILE_SIZE);
-        current_anim.render();
-
-        hp_bar.setPos(pos.x*TILE_SIZE, pos.y*TILE_SIZE);
-
-        int bar_length = ((float)hp/maxhp)*hp_bar.getWidth();
-        if (hp > 0 && bar_length < 1)
-            bar_length = 1;
-
-        hp_bar.setClip(0, 0 , ((float)hp/maxhp)*hp_bar.getWidth(), hp_bar.getHeight());
-        hp_bar.render();
-    }
-}
-
-void Enemy::setPos(int x, int y) {
-    pos.x = x;
-    pos.y = y;
+    player = NULL;
+    animating = false;
 }
 
 void Enemy::startTurn() {
     is_turn = true;
     action_ticks = ENEMY_COOLDOWN;
-}
-
-void Enemy::takeDamage(int dmg) {
-    if (dmg <= 0) return;
-
-    hp -= dmg;
-    if (hp <= 0) {
-        hp = 0;
-        current_anim.setTo(anim_die);
-        animating = true;
-    }
-    else {
-        current_anim.setTo(anim_hurt);
-        animating = true;
-    }
 }
 
 void Enemy::setPlayer(Player* _player) {
@@ -98,6 +57,3 @@ bool Enemy::isNearPlayer(int range) {
     }
 }
 
-bool Enemy::isAnimating() {
-    return animating;
-}

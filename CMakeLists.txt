@@ -75,6 +75,7 @@ Set (GAME_SOURCES
     ./src/animation.cpp
     ./src/enemy.cpp
     ./src/engines.cpp
+    ./src/entity.cpp
     ./src/game_engine.cpp
     ./src/input_engine.cpp
     ./src/map_engine.cpp
@@ -92,6 +93,7 @@ Set (GAME_HEADERS
     ./src/common.h
     ./src/enemy.h
     ./src/engines.h
+    ./src/entity.h
     ./src/game_engine.h
     ./src/input_engine.h
     ./src/map_engine.h
