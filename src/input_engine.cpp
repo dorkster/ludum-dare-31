@@ -14,6 +14,7 @@ InputEngine::InputEngine()
     binding[RIGHT] = SDLK_d;
     binding[UP] = SDLK_w;
     binding[DOWN] = SDLK_s;
+    binding[RESTART] = SDLK_r;
 }
 
 InputEngine::~InputEngine() {

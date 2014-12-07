@@ -15,18 +15,18 @@ class Enemy {
 public:
     Enemy(const int type);
     ~Enemy();
-    void logic();
     void render();
     void setPos(int x, int y);
     void startTurn();
     void takeDamage(int dmg);
     void setPlayer(Player* _player);
     void actionAttack();
+    bool isNearPlayer(int range);
+    bool isAnimating();
 
     Point pos;
     bool is_turn;
     int action_ticks;
-    bool move_to_player;
 
     int hp;
     int maxhp;
@@ -35,8 +35,11 @@ public:
 
 private:
     Animation anim_normal;
+    Animation anim_hurt;
+    Animation anim_die;
     Animation current_anim;
     Image hp_bar;
 
     Player* player;
+    bool animating;
 };

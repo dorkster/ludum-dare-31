@@ -6,6 +6,7 @@
 const int POWERUP_ATTACK = 0;
 const int POWERUP_DEFENSE = 1;
 const int POWERUP_POTION = 2;
+const int POWERUP_TREASURE = 3;
 
 class Powerup {
 public:

@@ -4,11 +4,38 @@
 MapEngine::MapEngine() {
     tileset.load(render_engine, "data/tileset.png");
     cursor.load(render_engine, "data/cursor.png");
-    player = NULL;
-    active_enemy = -1;
+
+    hud.load(render_engine, "data/hud.png");
 }
 
 MapEngine::~MapEngine() {
+    clear();
+}
+
+void MapEngine::init(Player* _player) {
+    clear();
+
+    player = _player;
+    player->init();
+
+    active_enemy = -1;
+    dungeon_depth = 2;
+    current_level = 0;
+
+    msg.setText("WASD = cursor. Enter = action.");
+    msg.setPos(2,0);
+    first_turn = true;
+
+    game_state = GAME_PLAY;
+
+    nextLevel();
+    playerStartTurn();
+}
+
+void MapEngine::logic() {
+}
+
+void MapEngine::clear() {
     for (unsigned i=0; i<levels.size(); i++) {
         for (unsigned k=0; k<enemies[i].size(); k++) {
             delete enemies[i][k];
@@ -21,6 +48,10 @@ MapEngine::~MapEngine() {
         }
         delete levels[i];
     }
+
+    enemies.clear();
+    powerups.clear();
+    levels.clear();
 }
 
 void MapEngine::prevLevel() {
@@ -28,9 +59,14 @@ void MapEngine::prevLevel() {
         current_level--;
         for (int i=0; i<MAP_H; i++) {
             for (int j=0; j<MAP_W; j++) {
-                if (levels[current_level][i][j] == 3) {
+                if (levels[current_level][i][j] == TILE_STAIRS_DOWN) {
                     player->setPos(j, i);
                     cursor_pos = player->pos;
+                    if (player->has_treasure) {
+                        spawnEnemies();
+                        spawnPowerups();
+                        levels[current_level][i][j] = TILE_STAIRS_BLOCKED;
+                    }
                     setContextTiles();
                     return;
                 }
@@ -46,7 +82,7 @@ void MapEngine::nextLevel() {
         bool found_stairs = false;
         for (int i=0; i<MAP_H; i++) {
             for (int j=0; j<MAP_W; j++) {
-                if (levels[current_level][i][j] == 2) {
+                if (levels[current_level][i][j] == TILE_STAIRS_UP) {
                     player->setPos(j, i);
                     found_stairs = true;
                     break;
@@ -73,21 +109,35 @@ void MapEngine::nextLevel() {
 
         for (int i=0; i<MAP_H; i++) {
             for (int j=0; j<MAP_W; j++) {
-                room[i][j] = 0;
+                room[i][j] = TILE_FLOOR;
 
                 // borders
-                if (i == 0 || i == MAP_H-1)
-                    room[i][j] = 1;
-                if (j == 0 || j == MAP_W-1)
-                    room[i][j] = 1;
+                if (i == 0 && j == 0)
+                    room[i][j] = TILE_WALL_TL;
+                else if (i == MAP_H-1 && j == 0)
+                    room[i][j] = TILE_WALL_BL;
+                else if (i == 0 && j == MAP_W-1)
+                    room[i][j] = TILE_WALL_TR;
+                else if (i == MAP_H-1 && j == MAP_W-1)
+                    room[i][j] = TILE_WALL_BR;
+                else if (i == 0)
+                    room[i][j] = TILE_WALL_T;
+                else if (i == MAP_H-1)
+                    room[i][j] = TILE_WALL_B;
+                else if (j == 0)
+                    room[i][j] = TILE_WALL_L;
+                else if (j == MAP_W-1)
+                    room[i][j] = TILE_WALL_R;
 
                 // up stairs
                 if (i == player_pos.y && j == player_pos.x)
-                    room[i][j] = 2;
+                    room[i][j] = TILE_STAIRS_UP;
 
-                // down stairs
-                if (i == stairs_pos.y && j == stairs_pos.x)
-                    room[i][j] = 3;
+                if (dungeon_depth > levels.size()+1) {
+                    // down stairs
+                    if (i == stairs_pos.y && j == stairs_pos.x)
+                        room[i][j] = TILE_STAIRS_DOWN;
+                }
             }
         }
 
@@ -95,6 +145,7 @@ void MapEngine::nextLevel() {
         current_level = levels.size()-1;
         spawnEnemies();
         spawnPowerups();
+        spawnTreasure();
     }
 
     cursor_pos = player->pos;
@@ -105,28 +156,29 @@ void MapEngine::render() {
     for (int i=0; i<MAP_H; i++) {
         for (int j=0; j<MAP_W; j++) {
             int tile = levels[current_level][i][j];
-            tileset.setClip(tile*16, 0, 16, 16);
-            tileset.setPos(j*16, i*16);
+            tileset.setClip(tile*TILE_SIZE, 0, TILE_SIZE, TILE_SIZE);
+            tileset.setPos(j*TILE_SIZE, i*TILE_SIZE);
             tileset.render();
         }
     }
 
-    if (player) {
-        // render context tiles
-        if (player->is_turn) {
-            for (int i=0; i<MAP_H; i++) {
-                for (int j=0; j<MAP_W; j++) {
-                    int tile = context_tiles[i][j];
-                    tileset.setClip(tile*16, 16, 16, 16);
-                    tileset.setPos(j*16, i*16);
-                    tileset.render();
-                }
+    // render context tiles
+    if (player && player->is_turn) {
+        for (int i=0; i<MAP_H; i++) {
+            for (int j=0; j<MAP_W; j++) {
+                int tile = context_tiles[i][j];
+                tileset.setClip(tile*TILE_SIZE, TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                tileset.setPos(j*TILE_SIZE, i*TILE_SIZE);
+                tileset.render();
             }
-
-            cursor.setPos(cursor_pos.x*16, cursor_pos.y*16);
-            cursor.render();
         }
+    }
 
+    // render cursor
+    cursor.setPos(cursor_pos.x*TILE_SIZE, cursor_pos.y*TILE_SIZE);
+    cursor.render();
+
+    if (player) {
         // render player
         player->render();
     }
@@ -141,18 +193,26 @@ void MapEngine::render() {
     for (unsigned i=0; i<enemies[current_level].size(); i++) {
         enemies[current_level][i]->render();
     }
+
+    // render hud overlay
+    hud.render();
+
+    // render status text
+    msg.render();
 }
 
 void MapEngine::setContextTiles() {
     for (int i=0; i<MAP_H; i++) {
         for (int j=0; j<MAP_W; j++) {
             context_tiles[i][j] = -1;
-            int dist = calcDistance(player->pos, FPoint(j, i));
-            if (dist <= 1 && isEnemy(j, i)) {
-                context_tiles[i][j] = 1;
+            float dist = calcDistance(player->pos, FPoint(j, i));
+
+            // casting dist to int here rounds it so that we can attack our corners
+            if ((int)dist <= 1 && isEnemy(j, i)) {
+                context_tiles[i][j] = CONTEXT_ENEMY;
             }
             else if (dist <= 1 && isWalkable(j, i)) {
-                context_tiles[i][j] = 0;
+                context_tiles[i][j] = CONTEXT_WALKABLE;
             }
         }
     }
@@ -164,7 +224,7 @@ bool MapEngine::isWalkable(int x, int y) {
 
     int tile = levels[current_level][y][x];
 
-    if (tile == 1)
+    if (tile != TILE_FLOOR && tile != TILE_STAIRS_UP && tile != TILE_STAIRS_DOWN && tile != TILE_STAIRS_BLOCKED)
         return false;
 
     if (isEnemy(x,y))
@@ -222,40 +282,50 @@ void MapEngine::moveCursor(int direction) {
         cursor_pos.y = MAP_H-1;
 }
 
-void MapEngine::setPlayer(Player *_player) {
-    player = _player;
-}
-
 void MapEngine::playerStartTurn() {
+    if (player->isAnimating())
+        return;
+
     player->is_turn = true;
     setContextTiles();
+    cursor_pos = player->pos;
+    if (!first_turn)
+        msg.setText("Player turn");
 }
 
 bool MapEngine::playerAction() {
+    if (first_turn) {
+        first_turn = false;
+    }
+
     if (player->pos.x == cursor_pos.x && player->pos.y == cursor_pos.y)
         return false;
 
     int dist = calcDistance(player->pos, cursor_pos);
 
-    if (dist <= 1 && context_tiles[cursor_pos.y][cursor_pos.x] == 0) {
+    if (dist <= 1 && context_tiles[cursor_pos.y][cursor_pos.x] == CONTEXT_WALKABLE) {
         player->actionMove(cursor_pos.x, cursor_pos.y);
         checkPowerup();
-        if (levels[current_level][cursor_pos.y][cursor_pos.x] == 2) {
-            prevLevel();
+        if (levels[current_level][cursor_pos.y][cursor_pos.x] == TILE_STAIRS_UP) {
+            if (player->has_treasure && current_level == 0) {
+                game_state = GAME_WIN;
+                msg.setText("You win! R to play again.");
+            }
+            else {
+                prevLevel();
+            }
             return false;
         }
-        else if (levels[current_level][cursor_pos.y][cursor_pos.x] == 3) {
+        else if (levels[current_level][cursor_pos.y][cursor_pos.x] == TILE_STAIRS_DOWN) {
             nextLevel();
             return false;
         }
         return true;
     }
-    else if (dist <= 1 && context_tiles[cursor_pos.y][cursor_pos.x] == 1) {
+    else if (dist <= 1 && context_tiles[cursor_pos.y][cursor_pos.x] == CONTEXT_ENEMY) {
         Enemy* e = getEnemy(cursor_pos.x, cursor_pos.y);
         if (e) {
             player->actionAttack(e);
-            if (e->hp == 0)
-                removeEnemy(e);
         }
         return true;
     }
@@ -266,8 +336,11 @@ bool MapEngine::playerAction() {
 void MapEngine::spawnEnemies() {
     enemies.resize(levels.size());
 
-    // int spawn_count = 4;
-    int spawn_count = (rand() % (current_level+1)) + 1;
+    int spawn_count = current_level+1;
+    if (player->has_treasure)
+        spawn_count = dungeon_depth + (dungeon_depth - spawn_count);
+
+    spawn_count = (rand() % spawn_count) + 1;
 
     int fail_count = 3; // prevent infinite loop
     while (spawn_count > 0) {
@@ -293,10 +366,15 @@ void MapEngine::spawnEnemies() {
 }
 
 void MapEngine::spawnPowerups() {
-    powerups.resize(levels.size());
+    if (powerups.size() < levels.size())
+        powerups.resize(levels.size());
 
-    int spawn_count = 4;
-    // int spawn_count = (rand() % (current_level+1));
+    int spawn_count = current_level+1;
+    if (player->has_treasure)
+        spawn_count = dungeon_depth + (dungeon_depth - spawn_count);
+    spawn_count = (rand() % spawn_count) + 1;
+    if (spawn_count > 3)
+        spawn_count = 3;
 
     int fail_count = 3; // prevent infinite loop
     while (spawn_count > 0) {
@@ -319,6 +397,31 @@ void MapEngine::spawnPowerups() {
         }
 
         spawn_count--;
+    }
+}
+
+void MapEngine::spawnTreasure() {
+    if (dungeon_depth > levels.size())
+        return;
+
+    if (powerups.size() < levels.size())
+        powerups.resize(levels.size());
+
+    int spawn_count = 1;
+
+    while (spawn_count > 0) {
+        Point spawn_pos;
+        spawn_pos.x = (rand() % (MAP_W/2)) + MAP_W/2 - 1;
+        spawn_pos.y = (rand() % (MAP_H-2)) + 1;
+
+        int type = POWERUP_TREASURE;
+
+        if (isWalkable(spawn_pos.x, spawn_pos.y) && !isPowerup(spawn_pos.x, spawn_pos.y)) {
+            Powerup* p = new Powerup(type);
+            p->setPos(spawn_pos.x, spawn_pos.y);
+            powerups[current_level].push_back(p);
+            spawn_count--;
+        }
     }
 }
 
@@ -347,6 +450,8 @@ void MapEngine::removeEnemy(Enemy* e) {
 
 void MapEngine::enemyStartTurn() {
     if (!enemies[current_level].empty()) {
+        player->is_turn = false;
+        msg.setText("Enemy turn");
         active_enemy = 0;
         enemies[current_level][active_enemy]->startTurn();
     }
@@ -356,35 +461,65 @@ bool MapEngine::enemyAction() {
     if (active_enemy == -1)
         return true;
 
-    Enemy* e = enemies[current_level][active_enemy];
-    if (e->is_turn) {
-        e->logic();
+    // wait for any dying enemies to finish animating
+    for (unsigned i=0; i<enemies[current_level].size(); i++) {
+        Enemy* e = enemies[current_level][i];
 
-        if (e->move_to_player) {
-            Point dest = e->pos;
-            int chase_roll = rand() % 3;
-            if (chase_roll == 0) {
-                if (e->pos.x > player->pos.x)
-                    dest.x--;
-                else if (e->pos.x < player->pos.x)
-                    dest.x++;
-                if (e->pos.y > player->pos.y)
-                    dest.y--;
-                else if (e->pos.y < player->pos.y)
-                    dest.y++;
+        if (e->hp == 0) {
+            if (!e->isAnimating()) {
+                removeEnemy(e);
+                if (enemies[current_level].empty())
+                    active_enemy = -1;
             }
+            return false;
+        }
+    }
+
+    Enemy* e = enemies[current_level][active_enemy];
+    if (e && e->is_turn)
+        cursor_pos = e->pos;
+    if (e && e->is_turn && !e->isAnimating()) {
+        if (e->action_ticks > 0)
+            e->action_ticks--;
+        else {
+            // move towards player
+            if (!e->isNearPlayer(1)) {
+                Point dest = e->pos;
+                if (e->isNearPlayer(2)) {
+                    if (e->pos.x > player->pos.x)
+                        dest.x--;
+                    else if (e->pos.x < player->pos.x)
+                        dest.x++;
+                    if (e->pos.y > player->pos.y)
+                        dest.y--;
+                    else if (e->pos.y < player->pos.y)
+                        dest.y++;
+                }
+                else {
+                    dest.x += ((rand() % 3) - 1);
+                    dest.y += ((rand() % 3) - 1);
+                }
+                if (isWalkable(dest.x, dest.y))
+                    e->setPos(dest.x, dest.y);
+            }
+            // attack
             else {
-                dest.x += ((rand() % 3) - 1);
-                dest.y += ((rand() % 3) - 1);
+                e->actionAttack();
             }
-            if (isWalkable(dest.x, dest.y))
-                e->setPos(dest.x, dest.y);
-            e->move_to_player = false;
+
+            e->is_turn = false;
+        }
+
+        // check if the player is dead
+        if (player->hp == 0) {
+            game_state = GAME_LOSE;
+            msg.setText("You lose. R to retry.");
+            return false;
         }
     }
 
     // turn can end during logic()
-    if (!e->is_turn) {
+    if (e && !e->is_turn) {
         if ((unsigned)active_enemy+1 < enemies[current_level].size()) {
             active_enemy++;
             enemies[current_level][active_enemy]->startTurn();
@@ -405,17 +540,13 @@ void MapEngine::checkPowerup() {
 
         if (p->pos.x == player->pos.x && p->pos.y == player->pos.y) {
             if (p->type == POWERUP_ATTACK)
-                player->attack += p->amount;
+                player->bonusAttack(p->amount);
             if (p->type == POWERUP_DEFENSE)
-                player->defense += p->amount;
+                player->bonusDefense(p->amount);
             if (p->type == POWERUP_POTION)
-                player->potions += p->amount;
-
-            // make sure we don't dip below the minimum values when pickup up bad powerups
-            if (player->attack < PLAYER_MIN_ATTACK)
-                player->attack = PLAYER_MIN_ATTACK;
-            if (player->defense < PLAYER_MIN_DEFENSE)
-                player->defense = PLAYER_MIN_DEFENSE;
+                player->bonusHP(p->amount);
+            if (p->type == POWERUP_TREASURE)
+                player->bonusTreasure();
 
             delete powerups[current_level][i];
             powerups[current_level].erase(powerups[current_level].begin()+i);

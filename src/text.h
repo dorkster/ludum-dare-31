@@ -14,5 +14,7 @@ public:
 
 private:
     Image image;
+    Image image_shadow;
     std::string text;
+    Point pos;
 };

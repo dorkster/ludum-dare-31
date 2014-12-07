@@ -3,6 +3,7 @@
 #define DEGTORAD 0.0174532925 
 
 const int MAX_FRAMES_PER_SEC = 60;
+const int TILE_SIZE = 16;
 
 class Point {
 public:

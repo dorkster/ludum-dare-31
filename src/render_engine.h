@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "utils.h"
 
 #include <SDL_ttf.h>
 
@@ -25,7 +26,7 @@ public:
     void loadImage(Image* image, const std::string& filename);
     void destroyImage(Image* image);
     void renderImage(const Image* image);
-    void renderText(Image* image, const std::string& text);
+    void renderText(Image* image, const std::string& text, Color _color);
 
     SDL_Texture* cacheLookup(const std::string& filename);
 

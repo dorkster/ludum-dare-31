@@ -14,12 +14,17 @@ class Player {
 public:
     Player();
     ~Player();
-    void logic();
+    void init();
     void render();
     void setPos(int x, int y);
     void takeDamage(int dmg);
     void actionMove(int x, int y);
     void actionAttack(Enemy* e);
+    void bonusAttack(int amount);
+    void bonusDefense(int amount);
+    void bonusHP(int amount);
+    void bonusTreasure();
+    bool isAnimating();
 
     Point pos;
     bool is_turn;
@@ -28,10 +33,13 @@ public:
     int maxhp;
     int attack;
     int defense;
-    int potions;
+    bool has_treasure;
 
 private:
     Animation anim_normal;
+    Animation anim_hurt;
+    Animation anim_die;
     Animation current_anim;
     Image hp_bar;
+    bool animating;
 };

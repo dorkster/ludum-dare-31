@@ -8,8 +8,6 @@
 #include "map_engine.h"
 #include "player.h"
 
-const int MSG_COOLDOWN = 300;
-
 class GameEngine {
 public:
     GameEngine();
@@ -23,7 +21,8 @@ private:
     MapEngine* map_engine;
     Player player;
     Text msg;
-    int msg_ticks;
 
     Text status_text;
+
+    Image treasure_status;
 };

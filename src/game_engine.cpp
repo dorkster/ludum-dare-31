@@ -8,15 +8,12 @@ GameEngine::GameEngine()
     : done(false)
 {
     map_engine = new MapEngine();
-    map_engine->setPlayer(&player);
+    map_engine->init(&player);
 
-    map_engine->nextLevel();
-    map_engine->playerStartTurn();
+    status_text.setPos(2, VIEW_H-14);
 
-    msg.setText("WASD = cursor. Enter = action.");
-    msg_ticks = MSG_COOLDOWN;
-
-    status_text.setPos(0, 112);
+    treasure_status.load(render_engine, "data/treasure_status.png");
+    treasure_status.setPos(VIEW_W-TILE_SIZE, VIEW_H-TILE_SIZE);
 }
 
 GameEngine::~GameEngine() {
@@ -29,55 +26,62 @@ void GameEngine::logic() {
         done = true;
 
     std::stringstream ss;
-    ss << "Att:" << player.attack << " | Def:" << player.defense << " | Potion:" << player.potions;
+    ss << "HP:" << player.hp << "/" << player.maxhp << " | Att:" << player.attack << " | Def:" << player.defense;
     status_text.setText(ss.str());
 
-    if (player.is_turn) {
-        if (input_engine->pressing[UP] && !input_engine->lock[UP]) {
-            input_engine->lock[UP] = true;
-            map_engine->moveCursor(CUR_UP);
-        }
-        if (input_engine->pressing[DOWN] && !input_engine->lock[DOWN]) {
-            input_engine->lock[DOWN] = true;
-            map_engine->moveCursor(CUR_DOWN);
-        }
-        if (input_engine->pressing[LEFT] && !input_engine->lock[LEFT]) {
-            input_engine->lock[LEFT] = true;
-            map_engine->moveCursor(CUR_LEFT);
-        }
-        if (input_engine->pressing[RIGHT] && !input_engine->lock[RIGHT]) {
-            input_engine->lock[RIGHT] = true;
-            map_engine->moveCursor(CUR_RIGHT);
-        }
+    if (map_engine->game_state == GAME_PLAY) {
+        if (player.is_turn) {
+            if (input_engine->pressing[UP] && !input_engine->lock[UP]) {
+                input_engine->lock[UP] = true;
+                map_engine->moveCursor(CUR_UP);
+            }
+            if (input_engine->pressing[DOWN] && !input_engine->lock[DOWN]) {
+                input_engine->lock[DOWN] = true;
+                map_engine->moveCursor(CUR_DOWN);
+            }
+            if (input_engine->pressing[LEFT] && !input_engine->lock[LEFT]) {
+                input_engine->lock[LEFT] = true;
+                map_engine->moveCursor(CUR_LEFT);
+            }
+            if (input_engine->pressing[RIGHT] && !input_engine->lock[RIGHT]) {
+                input_engine->lock[RIGHT] = true;
+                map_engine->moveCursor(CUR_RIGHT);
+            }
 
-        if (input_engine->pressing[ACCEPT] && !input_engine->lock[ACCEPT]) {
-            input_engine->lock[ACCEPT] = true;
-            if (map_engine->playerAction()) {
-                player.is_turn = false;
-                map_engine->enemyStartTurn();
-                msg.setText("Enemy turn");
-                msg_ticks = MSG_COOLDOWN;
+            if (input_engine->pressing[ACCEPT] && !input_engine->lock[ACCEPT]) {
+                input_engine->lock[ACCEPT] = true;
+                if (map_engine->playerAction()) {
+                    map_engine->enemyStartTurn();
+                }
+            }
+        }
+        else {
+            if (map_engine->enemyAction()) {
+                map_engine->playerStartTurn();
             }
         }
     }
     else {
-        if (map_engine->enemyAction()) {
-            map_engine->playerStartTurn();
-            msg.setText("Player turn");
-            msg_ticks = MSG_COOLDOWN;
+        // win and lose both have the same post-game logic
+        if (input_engine->pressing[RESTART] && !input_engine->lock[RESTART]) {
+            input_engine->lock[RESTART] = true;
+            // restart the game
+            map_engine->init(&player);
         }
     }
-
-    if (msg_ticks > 0)
-        msg_ticks--;
 }
 
 void GameEngine::render() {
     map_engine->render();
 
-    // render help text
-    if (msg_ticks > 0)
-        msg.render();
-
+    // player stats
     status_text.render();
+
+    // treasure status
+    if (player.has_treasure)
+        treasure_status.setClip(0,TILE_SIZE,TILE_SIZE,TILE_SIZE);
+    else
+        treasure_status.setClip(0,0,TILE_SIZE,TILE_SIZE);
+
+    treasure_status.render();
 }

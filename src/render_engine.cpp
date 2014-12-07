@@ -107,7 +107,7 @@ void RenderEngine::renderImage(const Image* image) {
     SDL_RenderCopyEx(renderer, image->texture, &(image->clip), &(image->dest), image->angle, NULL, SDL_FLIP_NONE);
 }
 
-void RenderEngine::renderText(Image* image, const std::string& text) {
+void RenderEngine::renderText(Image* image, const std::string& text, Color _color) {
     if (!font || !image) return;
 
     image->filename = "";
@@ -117,9 +117,7 @@ void RenderEngine::renderText(Image* image, const std::string& text) {
         image->texture = NULL;
     }
 
-    SDL_Color color;
-    color.r = color.g = color.b = color.a = 255;
-
+    SDL_Color color = _color;
     SDL_Surface* surface = TTF_RenderUTF8_Solid(font, text.c_str(), color);
     if (surface) {
         image->texture = SDL_CreateTextureFromSurface(renderer, surface);

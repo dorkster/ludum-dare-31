@@ -13,7 +13,8 @@ Animation::~Animation() {
 }
 
 void Animation::setTo(Animation& other) {
-    other.image.ref();
+    if (filename != other.filename)
+        other.image.ref();
     (*this) = other;
 }
 
