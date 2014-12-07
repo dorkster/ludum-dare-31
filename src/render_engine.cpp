@@ -23,7 +23,7 @@ RenderEngine::RenderEngine()
     //                           SDL_WINDOWPOS_CENTERED,
     //                           desktop.w, desktop.h,
     //                           SDL_WINDOW_FULLSCREEN_DESKTOP);
-    window = SDL_CreateWindow("game",
+    window = SDL_CreateWindow("Noman's Dungeon",
                               SDL_WINDOWPOS_CENTERED,
                               SDL_WINDOWPOS_CENTERED,
                               window_w, window_h,
