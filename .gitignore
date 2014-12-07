@@ -14,3 +14,6 @@ install_manifest.txt
 # performance and benchmarking items
 perf.data
 gmon.out
+
+# ignore gimp source files in data dir
+data/*.xcf
