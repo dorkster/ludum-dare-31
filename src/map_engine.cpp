@@ -24,7 +24,7 @@ void MapEngine::init(Player* _player) {
     player->init();
 
     active_enemy = -1;
-    dungeon_depth = 2;
+    dungeon_depth = 5;
     current_level = 0;
 
     msg.setText("WASD = cursor. Enter = action.");
@@ -133,6 +133,10 @@ void MapEngine::nextLevel() {
                     room[i][j] = TILE_WALL_L;
                 else if (j == MAP_W-1)
                     room[i][j] = TILE_WALL_R;
+                else {
+                    if (rand() % 4 == 0)
+                        room[i][j] = TILE_ROCK;
+                }
 
                 // up stairs
                 if (i == player_pos.y && j == player_pos.x)
@@ -146,11 +150,35 @@ void MapEngine::nextLevel() {
             }
         }
 
+        // clear a path through rocks
+        Point p1 = player_pos;
+        Point p2 = stairs_pos;
+        while (!(p1.x == p2.x && p1.y == p2.y)) {
+            if (p1.x < MAP_W-2) {
+                if (rand()%2 == 0)
+                    p1.x++;
+                else {
+                    if (p1.y > 1 && rand()%2 == 0)
+                        p1.y--;
+                    else if (p1.y < MAP_H-2 && rand()%2 == 0)
+                        p1.y++;
+                }
+            }
+            else {
+                if (p1.y > 1 && rand()%2 == 0)
+                    p1.y--;
+                else if (p1.y < MAP_H-2 && rand()%2 == 0)
+                    p1.y++;
+            }
+            if (room[p1.y][p1.x] != TILE_STAIRS_UP && room[p1.y][p1.x] != TILE_STAIRS_DOWN)
+                room[p1.y][p1.x] = TILE_FLOOR;
+        }
+
         levels.push_back(room);
         current_level = levels.size()-1;
         spawnEnemies();
         spawnPowerups();
-        spawnTreasure();
+        spawnTreasure(stairs_pos);
     }
 
     cursor_pos = player->pos;
@@ -349,13 +377,17 @@ void MapEngine::spawnEnemies() {
     if (player->has_treasure)
         spawn_count = dungeon_depth + (dungeon_depth - spawn_count);
 
-    spawn_count = (rand() % spawn_count) + 1;
+    spawn_count = (rand() % spawn_count) + 3;
 
-    int fail_count = 3; // prevent infinite loop
+    int fail_count = 10; // prevent infinite loop
     while (spawn_count > 0) {
         Point spawn_pos;
-        spawn_pos.x = (rand() % (MAP_W/2)) + MAP_W/2 - 1;
         spawn_pos.y = (rand() % (MAP_H-2)) + 1;
+
+        if (player->has_treasure)
+            spawn_pos.x = (rand() % (MAP_W/2)) + 1;
+        else
+            spawn_pos.x = (rand() % (MAP_W/2)) + MAP_W/2 - 1;
 
         if (isWalkable(spawn_pos.x, spawn_pos.y)) {
             Enemy* e = new Enemy(ENEMY_SLIME);
@@ -378,14 +410,14 @@ void MapEngine::spawnPowerups() {
     if (powerups.size() < levels.size())
         powerups.resize(levels.size());
 
-    int spawn_count = current_level+1;
+    int spawn_count = current_level+5;
     if (player->has_treasure)
         spawn_count = dungeon_depth + (dungeon_depth - spawn_count);
     spawn_count = (rand() % spawn_count) + 1;
     if (spawn_count > 3)
         spawn_count = 3;
 
-    int fail_count = 3; // prevent infinite loop
+    int fail_count = 10; // prevent infinite loop
     while (spawn_count > 0) {
         Point spawn_pos;
         spawn_pos.x = (rand() % (MAP_W-2)) + 1;
@@ -409,22 +441,18 @@ void MapEngine::spawnPowerups() {
     }
 }
 
-void MapEngine::spawnTreasure() {
+void MapEngine::spawnTreasure(const Point& pos) {
     if (dungeon_depth > levels.size())
         return;
 
     if (powerups.size() < levels.size())
         powerups.resize(levels.size());
 
+    Point spawn_pos = pos;
     int spawn_count = 1;
+    int type = POWERUP_TREASURE;
 
     while (spawn_count > 0) {
-        Point spawn_pos;
-        spawn_pos.x = (rand() % (MAP_W/2)) + MAP_W/2 - 1;
-        spawn_pos.y = (rand() % (MAP_H-2)) + 1;
-
-        int type = POWERUP_TREASURE;
-
         if (isWalkable(spawn_pos.x, spawn_pos.y) && !isPowerup(spawn_pos.x, spawn_pos.y)) {
             Powerup* p = new Powerup(type);
             p->setPos(spawn_pos.x, spawn_pos.y);
@@ -578,4 +606,8 @@ void MapEngine::checkPowerup() {
             return;
         }
     }
+}
+
+unsigned MapEngine::getCurrentLevel() {
+    return current_level+1;
 }

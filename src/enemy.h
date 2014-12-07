@@ -3,7 +3,7 @@
 #include "entity.h"
 #include "player.h"
 
-const int ENEMY_COOLDOWN = 30;
+const int ENEMY_COOLDOWN = 15;
 
 const int ENEMY_SLIME = 0;
 

@@ -5,15 +5,15 @@ Powerup::Powerup(const int _type) {
 
     if (type == POWERUP_ATTACK) {
         anim_normal.load("data/powerups.png", 0, 1, 100, 0, TILE_SIZE, TILE_SIZE, 0, 0);
-        amount = (rand() % 4) + 1;
+        amount = (rand() % 5) + 1;
     }
     else if (type == POWERUP_DEFENSE) {
         anim_normal.load("data/powerups.png", 1, 1, 100, 0, TILE_SIZE, TILE_SIZE, 0, 0);
-        amount = (rand() % 2) + 1;
+        amount = (rand() % 5) + 1;
     }
     else if (type == POWERUP_POTION) {
         anim_normal.load("data/powerups.png", 2, 1, 100, 0, TILE_SIZE, TILE_SIZE, 0, 0);
-        amount = (rand() % 8) + 1;
+        amount = (rand()%40) + 10;
     }
     else if (type == POWERUP_TREASURE) {
         anim_normal.load("data/powerups.png", 3, 1, 100, 0, TILE_SIZE, TILE_SIZE, 0, 0);

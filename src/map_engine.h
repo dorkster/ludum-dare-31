@@ -22,18 +22,18 @@ const int GAME_WIN = 1;
 const int GAME_LOSE = 2;
 
 const int TILE_FLOOR = 0;
-const int TILE_ROCK = 1;
-const int TILE_STAIRS_UP = 2;
-const int TILE_STAIRS_DOWN = 3;
-const int TILE_STAIRS_BLOCKED = 4;
-const int TILE_WALL_T = 5;
-const int TILE_WALL_B = 6;
-const int TILE_WALL_TL = 7;
-const int TILE_WALL_TR = 8;
-const int TILE_WALL_L = 9;
-const int TILE_WALL_R = 10;
-const int TILE_WALL_BL = 11;
-const int TILE_WALL_BR = 12;
+const int TILE_STAIRS_UP = 1;
+const int TILE_STAIRS_DOWN = 2;
+const int TILE_STAIRS_BLOCKED = 3;
+const int TILE_WALL_T = 4;
+const int TILE_WALL_B = 5;
+const int TILE_WALL_TL = 6;
+const int TILE_WALL_TR = 7;
+const int TILE_WALL_L = 8;
+const int TILE_WALL_R = 9;
+const int TILE_WALL_BL = 10;
+const int TILE_WALL_BR = 11;
+const int TILE_ROCK = 12;
 
 const int CONTEXT_WALKABLE = 0;
 const int CONTEXT_ENEMY = 1;
@@ -53,6 +53,7 @@ public:
     bool playerAction();
     void enemyStartTurn();
     bool enemyAction();
+    unsigned getCurrentLevel();
 
     int game_state;
 private:
@@ -62,7 +63,7 @@ private:
     bool isPowerup(int x, int y);
     void spawnEnemies();
     void spawnPowerups();
-    void spawnTreasure();
+    void spawnTreasure(const Point& pos);
     Enemy* getEnemy(int x, int y);
     void removeEnemy(Enemy* e);
     void checkPowerup();

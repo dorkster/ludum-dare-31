@@ -36,7 +36,7 @@ void Entity::render() {
         if (hp > 0 && bar_length < 1)
             bar_length = 1;
 
-        hp_bar.setClip(0, 0 , ((float)hp/maxhp)*hp_bar.getWidth(), hp_bar.getHeight());
+        hp_bar.setClip(0, 0 , bar_length, hp_bar.getHeight());
         hp_bar.render();
     }
 }

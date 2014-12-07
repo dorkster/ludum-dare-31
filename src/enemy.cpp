@@ -6,9 +6,9 @@ Enemy::Enemy(const int type) {
         anim_normal.load("data/slime.png", 0, 1, 100, 0, TILE_SIZE, TILE_SIZE, 0, 0);
         anim_hurt.load("data/slime.png", 1, 4, 266, 1, TILE_SIZE, TILE_SIZE, 0, 0);
         anim_die.load("data/slime.png", 2, 4, 266, 1, TILE_SIZE, TILE_SIZE, 0, 0);
-        hp = maxhp = 16;
-        attack = 6;
-        defense = 2;
+        hp = maxhp = (rand()%10) + 10;
+        attack = (rand()%5) + 10;
+        defense = (rand()%5) + 1;
     }
 
     init();

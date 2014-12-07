@@ -13,9 +13,9 @@ Player::~Player() {
 void Player::init() {
     current_anim.setTo(anim_normal);
     is_turn = false;
-    hp = maxhp = 512;
-    attack = 15;
-    defense = 3;
+    hp = maxhp = 50;
+    attack = 10;
+    defense = 10;
     has_treasure = false;
     animating = false;
 }
@@ -51,7 +51,10 @@ void Player::bonusDefense(int amount) {
 }
 
 void Player::bonusHP(int amount) {
-    hp += amount;
+    if (amount == 0) return;
+
+    int real_amount = (amount*maxhp)/100;
+    hp += real_amount;
     if (hp > maxhp)
         hp = maxhp;
 
