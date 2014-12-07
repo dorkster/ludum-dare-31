@@ -1,14 +1,19 @@
-### Noman's Dungeon
+# Noman's Dungeon
 
-Gameplay:
+## Gameplay
 
 Get to the bottom, get the treasure, and get back to the top.
 
-Building:
+## Building:
 
-Requires SDL2, SDL2 image, SDL2 ttf, and SDL mixer
+Requires CMake, SDL2, SDL2 image, SDL2 ttf, and SDL mixer
 
-Controls:
+```
+cmake .
+make
+```
+
+## Controls:
 
 - WASD moves the cursor
 - Enter executes an action on the cursor position
