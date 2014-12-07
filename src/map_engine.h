@@ -34,6 +34,7 @@ const int TILE_WALL_R = 9;
 const int TILE_WALL_BL = 10;
 const int TILE_WALL_BR = 11;
 const int TILE_ROCK = 12;
+const int TILE_CRATE = 13;
 
 const int CONTEXT_WALKABLE = 0;
 const int CONTEXT_ENEMY = 1;

@@ -135,7 +135,7 @@ void MapEngine::nextLevel() {
                     room[i][j] = TILE_WALL_R;
                 else {
                     if (rand() % 4 == 0)
-                        room[i][j] = TILE_ROCK;
+                        room[i][j] = (rand()%2) + TILE_ROCK;
                 }
 
                 // up stairs
