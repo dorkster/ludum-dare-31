@@ -27,6 +27,7 @@ public:
     void destroyImage(Image* image);
     void renderImage(const Image* image);
     void renderText(Image* image, const std::string& text, Color _color);
+    void toggleFullscreen();
 
     SDL_Texture* cacheLookup(const std::string& filename);
 
@@ -40,6 +41,8 @@ private:
     std::vector<Texture> cache;
 
     TTF_Font* font;
+
+    bool fullscreen;
 };
 
 class Image {

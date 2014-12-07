@@ -22,8 +22,15 @@ GameEngine::~GameEngine() {
 
 void GameEngine::logic() {
     // exit game
-    if (input_engine->pressing[CANCEL])
+    if (input_engine->pressing[EXIT]) {
         done = true;
+        return;
+    }
+
+    if (input_engine->pressing[FULLSCREEN_TOGGLE] && !input_engine->lock[FULLSCREEN_TOGGLE]) {
+        input_engine->lock[FULLSCREEN_TOGGLE] = true;
+        render_engine->toggleFullscreen();
+    }
 
     std::stringstream ss;
     ss << "HP:" << player.hp << "/" << player.maxhp << " | Att:" << player.attack << " | Def:" << player.defense;
@@ -48,8 +55,8 @@ void GameEngine::logic() {
                 map_engine->moveCursor(CUR_RIGHT);
             }
 
-            if (input_engine->pressing[ACCEPT] && !input_engine->lock[ACCEPT]) {
-                input_engine->lock[ACCEPT] = true;
+            if (input_engine->pressing[ACTION] && !input_engine->lock[ACTION]) {
+                input_engine->lock[ACTION] = true;
                 if (map_engine->playerAction()) {
                     map_engine->enemyStartTurn();
                 }

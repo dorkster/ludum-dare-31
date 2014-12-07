@@ -12,6 +12,12 @@ RenderEngine::RenderEngine()
     SDL_DisplayMode desktop;
     SDL_GetDesktopDisplayMode(0, &desktop);
 
+    VIEW_W = 224;
+    VIEW_H = 128;
+
+    int window_w = (int)(desktop.w / 1.5f /VIEW_W) * VIEW_W;
+    int window_h = (int)(desktop.h / 1.5f /VIEW_H) * VIEW_H;
+
     // window = SDL_CreateWindow("game",
     //                           SDL_WINDOWPOS_CENTERED,
     //                           SDL_WINDOWPOS_CENTERED,
@@ -20,17 +26,14 @@ RenderEngine::RenderEngine()
     window = SDL_CreateWindow("game",
                               SDL_WINDOWPOS_CENTERED,
                               SDL_WINDOWPOS_CENTERED,
-                              672, 384,
+                              window_w, window_h,
                               0);
+    fullscreen = false;
 
     if (SOFTWARE_RENDER)
         renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
     else
         renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE | SDL_RENDERER_PRESENTVSYNC);
-
-    VIEW_H = 128;
-    // VIEW_W = (int)((float)desktop.w * ((float)VIEW_H / (float)desktop.h));
-    VIEW_W = 224;
 
     // SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
     SDL_RenderSetLogicalSize(renderer, VIEW_W, VIEW_H);
@@ -38,6 +41,9 @@ RenderEngine::RenderEngine()
     // load default text font
     if (TTF_Init() != -1)
         font = TTF_OpenFont("data/dejavu_sans_mono.ttf", 10);
+
+    // hide the mouse cursor
+    SDL_ShowCursor(0);
 }
 
 RenderEngine::~RenderEngine() {
@@ -125,6 +131,15 @@ void RenderEngine::renderText(Image* image, const std::string& text, Color _colo
     }
 
     image->init(this);
+}
+
+void RenderEngine::toggleFullscreen() {
+    if (fullscreen)
+        SDL_SetWindowFullscreen(window, 0);
+    else
+        SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+
+    fullscreen = !fullscreen;
 }
 
 void RenderEngine::cacheStore(const Image* image) {

@@ -13,7 +13,7 @@ Player::~Player() {
 void Player::init() {
     current_anim.setTo(anim_normal);
     is_turn = false;
-    hp = maxhp = 32;
+    hp = maxhp = 512;
     attack = 15;
     defense = 3;
     has_treasure = false;

@@ -8,13 +8,14 @@ InputEngine::InputEngine()
         lock[i] = false;
     }
 
-    binding[ACCEPT] = SDLK_RETURN;
-    binding[CANCEL] = SDLK_ESCAPE;
+    binding[ACTION] = SDLK_RETURN;
+    binding[EXIT] = SDLK_ESCAPE;
     binding[LEFT] = SDLK_a;
     binding[RIGHT] = SDLK_d;
     binding[UP] = SDLK_w;
     binding[DOWN] = SDLK_s;
     binding[RESTART] = SDLK_r;
+    binding[FULLSCREEN_TOGGLE] = SDLK_f;
 }
 
 InputEngine::~InputEngine() {

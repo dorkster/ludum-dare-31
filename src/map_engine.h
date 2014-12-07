@@ -1,12 +1,13 @@
 #pragma once
 
 #include "common.h"
-#include "render_engine.h"
-#include "utils.h"
-#include "player.h"
 #include "enemy.h"
+#include "player.h"
 #include "powerup.h"
+#include "render_engine.h"
+#include "sound_engine.h"
 #include "text.h"
+#include "utils.h"
 
 const int MAP_W = 14;
 const int MAP_H = 8;
@@ -87,4 +88,9 @@ private:
     bool first_turn; // displays help text when the player starts for the first time
 
     Image hud;
+
+    Sound sfx_cursor;
+    Sound sfx_powerup;
+    Sound sfx_treasure;
+    Sound sfx_win;
 };

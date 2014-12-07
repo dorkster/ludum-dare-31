@@ -3,12 +3,19 @@
 
 Entity::Entity() {
     hp_bar.load(render_engine, "data/hp_bar.png");
+
+    sound_engine->loadSound(&sfx_hurt, "data/hurt.wav");
+    sound_engine->loadSound(&sfx_die, "data/die.wav");
+    sound_engine->loadSound(&sfx_move, "data/move.wav");
 }
 
 Entity::~Entity() {
 }
 
 void Entity::init() {
+}
+
+void Entity::startTurn() {
 }
 
 void Entity::render() {
@@ -39,9 +46,6 @@ void Entity::setPos(int x, int y) {
     pos.y = y;
 }
 
-void Entity::startTurn() {
-}
-
 void Entity::takeDamage(int dmg) {
     if (dmg <= 0) return;
 
@@ -49,10 +53,12 @@ void Entity::takeDamage(int dmg) {
     if (hp <= 0) {
         hp = 0;
         current_anim.setTo(anim_die);
+        sfx_die.play();
         animating = true;
     }
     else {
         current_anim.setTo(anim_hurt);
+        sfx_hurt.play();
         animating = true;
     }
 }

@@ -6,6 +6,11 @@ MapEngine::MapEngine() {
     cursor.load(render_engine, "data/cursor.png");
 
     hud.load(render_engine, "data/hud.png");
+
+    sound_engine->loadSound(&sfx_cursor, "data/cursor.wav");
+    sound_engine->loadSound(&sfx_powerup, "data/powerup.wav");
+    sound_engine->loadSound(&sfx_treasure, "data/treasure.wav");
+    sound_engine->loadSound(&sfx_win, "data/victory.wav");
 }
 
 MapEngine::~MapEngine() {
@@ -280,13 +285,15 @@ void MapEngine::moveCursor(int direction) {
         cursor_pos.y = 0;
     if (cursor_pos.y >= MAP_H)
         cursor_pos.y = MAP_H-1;
+
+    sfx_cursor.play();
 }
 
 void MapEngine::playerStartTurn() {
     if (player->isAnimating())
         return;
 
-    player->is_turn = true;
+    player->startTurn();
     setContextTiles();
     cursor_pos = player->pos;
     if (!first_turn)
@@ -305,11 +312,13 @@ bool MapEngine::playerAction() {
 
     if (dist <= 1 && context_tiles[cursor_pos.y][cursor_pos.x] == CONTEXT_WALKABLE) {
         player->actionMove(cursor_pos.x, cursor_pos.y);
+        player->sfx_move.play();
         checkPowerup();
         if (levels[current_level][cursor_pos.y][cursor_pos.x] == TILE_STAIRS_UP) {
             if (player->has_treasure && current_level == 0) {
                 game_state = GAME_WIN;
                 msg.setText("You win! R to play again.");
+                sfx_win.play();
             }
             else {
                 prevLevel();
@@ -485,7 +494,7 @@ bool MapEngine::enemyAction() {
             // move towards player
             if (!e->isNearPlayer(1)) {
                 Point dest = e->pos;
-                if (e->isNearPlayer(2)) {
+                if (e->isNearPlayer(4)) {
                     if (e->pos.x > player->pos.x)
                         dest.x--;
                     else if (e->pos.x < player->pos.x)
@@ -496,11 +505,21 @@ bool MapEngine::enemyAction() {
                         dest.y++;
                 }
                 else {
-                    dest.x += ((rand() % 3) - 1);
-                    dest.y += ((rand() % 3) - 1);
+                    int dx = 0;
+                    int dy = 0;
+                    int fail_count = 3;
+                    while (dx == 0 && dy == 0 && fail_count > 0) {
+                        dx = (rand() % 3) - 1;
+                        dy = (rand() % 3) - 1;
+                        fail_count--;
+                    }
+                    dest.x += dx;
+                    dest.y += dy;
                 }
-                if (isWalkable(dest.x, dest.y))
+                if (isWalkable(dest.x, dest.y)) {
                     e->setPos(dest.x, dest.y);
+                    e->sfx_move.play();
+                }
             }
             // attack
             else {
@@ -547,6 +566,12 @@ void MapEngine::checkPowerup() {
                 player->bonusHP(p->amount);
             if (p->type == POWERUP_TREASURE)
                 player->bonusTreasure();
+
+            // play sound
+            if (p->type == POWERUP_TREASURE)
+                sfx_treasure.play();
+            else
+                sfx_powerup.play();
 
             delete powerups[current_level][i];
             powerups[current_level].erase(powerups[current_level].begin()+i);

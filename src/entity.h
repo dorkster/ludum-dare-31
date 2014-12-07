@@ -2,6 +2,7 @@
 
 #include "animation.h"
 #include "render_engine.h"
+#include "sound_engine.h"
 #include "utils.h"
 
 class Entity {
@@ -31,4 +32,8 @@ public:
 
     Image hp_bar;
     bool animating;
+
+    Sound sfx_hurt;
+    Sound sfx_die;
+    Sound sfx_move;
 };
