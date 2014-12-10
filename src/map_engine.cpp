@@ -550,7 +550,7 @@ bool MapEngine::enemyAction() {
                 }
             }
             // attack
-            else {
+            else if (e->isNearPlayer(1)) {
                 e->actionAttack();
             }
 
