@@ -68,11 +68,13 @@ private:
     Enemy* getEnemy(int x, int y);
     void removeEnemy(Enemy* e);
     void checkPowerup();
+    void setFogOfWar();
 
     unsigned current_level;
     Image tileset;
     std::vector<int**> levels;
     int context_tiles[MAP_H][MAP_W];
+    int fog_tiles[MAP_H][MAP_W];
 
     Player* player;
 
@@ -95,4 +97,6 @@ private:
     Sound sfx_powerup;
     Sound sfx_treasure;
     Sound sfx_win;
+
+    Image fog;
 };

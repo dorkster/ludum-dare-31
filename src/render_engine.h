@@ -57,6 +57,7 @@ public:
     void setPos(int _x, int _y);
     void setClip(int _x, int _y, int _w, int _h);
     void setAngle(double _angle);
+    void setAlpha(int _alpha = 255);
     void ref();
 
     std::string filename;

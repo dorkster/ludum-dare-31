@@ -23,4 +23,6 @@ public:
     void startTurn();
 
     bool has_treasure;
+
+    int view_distance;
 };

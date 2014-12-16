@@ -18,6 +18,7 @@ void Player::init() {
     defense = 10;
     has_treasure = false;
     animating = false;
+    view_distance = 3;
 }
 
 void Player::startTurn() {

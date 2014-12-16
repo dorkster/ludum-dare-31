@@ -239,6 +239,10 @@ void Image::setAngle(double _angle) {
     angle = _angle;
 }
 
+void Image::setAlpha(int _alpha) {
+    SDL_SetTextureAlphaMod(texture, _alpha);
+}
+
 void Image::ref() {
     if (render_engine)
         render_engine->cacheLookup(filename);

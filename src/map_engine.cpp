@@ -4,6 +4,7 @@
 MapEngine::MapEngine() {
     tileset.load(render_engine, "data/tileset.png");
     cursor.load(render_engine, "data/cursor.png");
+    fog.load(render_engine, "data/fog.png");
 
     hud.load(render_engine, "data/hud.png");
 
@@ -73,6 +74,7 @@ void MapEngine::prevLevel() {
                         levels[current_level][i][j] = TILE_STAIRS_BLOCKED;
                     }
                     setContextTiles();
+                    setFogOfWar();
                     return;
                 }
             }
@@ -185,6 +187,7 @@ void MapEngine::nextLevel() {
 
     cursor_pos = player->pos;
     setContextTiles();
+    setFogOfWar();
 }
 
 void MapEngine::render() {
@@ -227,6 +230,15 @@ void MapEngine::render() {
     // render enemies
     for (unsigned i=0; i<enemies[current_level].size(); i++) {
         enemies[current_level][i]->render();
+    }
+
+    // render fog of war
+    for (int i=0; i<MAP_H; i++) {
+        for (int j=0; j<MAP_W; j++) {
+            fog.setAlpha(fog_tiles[i][j]);
+            fog.setPos(j*TILE_SIZE, i*TILE_SIZE);
+            fog.render();
+        }
     }
 
     // render hud overlay
@@ -298,6 +310,8 @@ bool MapEngine::isPowerup(int x, int y) {
 }
 
 void MapEngine::moveCursor(int direction) {
+    Point old_pos = cursor_pos;
+
     if (direction == CUR_UP)
         cursor_pos.y--;
     else if (direction == CUR_DOWN)
@@ -316,6 +330,14 @@ void MapEngine::moveCursor(int direction) {
     if (cursor_pos.y >= MAP_H)
         cursor_pos.y = MAP_H-1;
 
+    // can't select fully fogged tiles
+    if (fog_tiles[cursor_pos.y][cursor_pos.x] == 255)
+        cursor_pos = old_pos;
+
+    // no movement
+    if (cursor_pos.x == old_pos.x && cursor_pos.y == old_pos.y)
+        return;
+
     sfx_cursor.play();
 }
 
@@ -325,6 +347,7 @@ void MapEngine::playerStartTurn() {
 
     player->startTurn();
     setContextTiles();
+    setFogOfWar();
     cursor_pos = player->pos;
     if (!first_turn)
         msg.setText("Player turn");
@@ -342,6 +365,7 @@ bool MapEngine::playerAction() {
 
     if (dist <= 1 && context_tiles[cursor_pos.y][cursor_pos.x] == CONTEXT_WALKABLE) {
         player->actionMove(cursor_pos.x, cursor_pos.y);
+        setFogOfWar();
         player->sfx_move.play();
         checkPowerup();
         if (levels[current_level][cursor_pos.y][cursor_pos.x] == TILE_STAIRS_UP) {
@@ -613,4 +637,17 @@ void MapEngine::checkPowerup() {
 
 unsigned MapEngine::getCurrentLevel() {
     return current_level+1;
+}
+
+void MapEngine::setFogOfWar() {
+    for (int i=0; i<MAP_H; i++) {
+        for (int j=0; j<MAP_W; j++) {
+            fog_tiles[i][j] = 255;
+            float dist = calcDistance(player->pos, FPoint(j, i));
+
+            if (dist < player->view_distance) {
+                fog_tiles[i][j] = dist * (256/player->view_distance);
+            }
+        }
+    }
 }
