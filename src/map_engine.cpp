@@ -176,9 +176,11 @@ void MapEngine::nextLevel() {
 
         levels.push_back(room);
         current_level = levels.size()-1;
+        enemies.resize(levels.size());
+        powerups.resize(levels.size());
+        spawnTreasure(stairs_pos);
         spawnEnemies();
         spawnPowerups();
-        spawnTreasure(stairs_pos);
     }
 
     cursor_pos = player->pos;
@@ -371,8 +373,6 @@ bool MapEngine::playerAction() {
 }
 
 void MapEngine::spawnEnemies() {
-    enemies.resize(levels.size());
-
     int spawn_count = current_level+1;
     if (player->has_treasure)
         spawn_count = dungeon_depth + (dungeon_depth - spawn_count);
@@ -407,9 +407,6 @@ void MapEngine::spawnEnemies() {
 }
 
 void MapEngine::spawnPowerups() {
-    if (powerups.size() < levels.size())
-        powerups.resize(levels.size());
-
     int spawn_count = current_level+5;
     if (player->has_treasure)
         spawn_count = dungeon_depth + (dungeon_depth - spawn_count);
@@ -420,7 +417,7 @@ void MapEngine::spawnPowerups() {
     int fail_count = 10; // prevent infinite loop
     while (spawn_count > 0) {
         Point spawn_pos;
-        spawn_pos.x = (rand() % (MAP_W-3)) + 1; // don't spawn powerups in the last column, since the treasure might go there
+        spawn_pos.x = (rand() % (MAP_W-2)) + 1;
         spawn_pos.y = (rand() % (MAP_H-2)) + 1;
 
         int type = rand() % 3;
@@ -449,15 +446,21 @@ void MapEngine::spawnTreasure(const Point& pos) {
         powerups.resize(levels.size());
 
     Point spawn_pos = pos;
-    int spawn_count = 1;
     int type = POWERUP_TREASURE;
 
-    while (spawn_count > 0) {
+    int fail_count = 10;
+    while (fail_count > 0) {
         if (isWalkable(spawn_pos.x, spawn_pos.y) && !isPowerup(spawn_pos.x, spawn_pos.y)) {
             Powerup* p = new Powerup(type);
             p->setPos(spawn_pos.x, spawn_pos.y);
             powerups[current_level].push_back(p);
-            spawn_count--;
+            break; // success
+        }
+        else {
+            logError("Could not place the treasure on the designated tile. Trying random tile...\n");
+            spawn_pos.x = (rand() % (MAP_W-2)) + 1;
+            spawn_pos.y = (rand() % (MAP_H-2)) + 1;
+            fail_count--;
         }
     }
 }
