@@ -358,25 +358,17 @@ bool MapEngine::playerAction() {
         first_turn = false;
     }
 
+    // TODO guard when targeting self?
     if (player->pos.x == cursor_pos.x && player->pos.y == cursor_pos.y)
         return false;
 
-    int dist = calcDistance(player->pos, cursor_pos);
-
-    if (dist <= 1 && context_tiles[cursor_pos.y][cursor_pos.x] == CONTEXT_WALKABLE) {
+    if (context_tiles[cursor_pos.y][cursor_pos.x] == CONTEXT_WALKABLE) {
         player->actionMove(cursor_pos.x, cursor_pos.y);
-        setFogOfWar();
         player->sfx_move.play();
+        setFogOfWar();
         checkPowerup();
         if (levels[current_level][cursor_pos.y][cursor_pos.x] == TILE_STAIRS_UP) {
-            if (player->has_treasure && current_level == 0) {
-                game_state = GAME_WIN;
-                msg.setText("You win! R to play again.");
-                sfx_win.play();
-            }
-            else {
-                prevLevel();
-            }
+            prevLevel();
             return false;
         }
         else if (levels[current_level][cursor_pos.y][cursor_pos.x] == TILE_STAIRS_DOWN) {
@@ -385,11 +377,8 @@ bool MapEngine::playerAction() {
         }
         return true;
     }
-    else if (dist <= 1 && context_tiles[cursor_pos.y][cursor_pos.x] == CONTEXT_ENEMY) {
-        Enemy* e = getEnemy(cursor_pos.x, cursor_pos.y);
-        if (e) {
-            player->actionAttack(e);
-        }
+    else if (context_tiles[cursor_pos.y][cursor_pos.x] == CONTEXT_ENEMY) {
+        player->actionAttack(getEnemy(cursor_pos.x, cursor_pos.y));
         return true;
     }
 
@@ -491,7 +480,7 @@ void MapEngine::spawnTreasure(const Point& pos) {
 
 Enemy* MapEngine::getEnemy(int x, int y) {
     for (unsigned i=0; i<enemies[current_level].size(); i++) {
-        Point enemy_pos = enemies[current_level][i]->pos;
+        const Point& enemy_pos = enemies[current_level][i]->pos;
         if (x == enemy_pos.x && y == enemy_pos.y)
             return enemies[current_level][i];
     }
@@ -583,13 +572,6 @@ bool MapEngine::enemyAction() {
 
             e->is_turn = false;
         }
-
-        // check if the player is dead
-        if (player->hp == 0) {
-            game_state = GAME_LOSE;
-            msg.setText("You lose. R to retry.");
-            return false;
-        }
     }
 
     // turn can end during logic()
@@ -649,5 +631,19 @@ void MapEngine::setFogOfWar() {
                 fog_tiles[i][j] = dist * (256/player->view_distance);
             }
         }
+    }
+}
+
+void MapEngine::checkWinLoss() {
+    // win
+    if (player->has_treasure && current_level == 0 && levels[current_level][player->pos.y][player->pos.x] == TILE_STAIRS_UP) {
+        game_state = GAME_WIN;
+        msg.setText("You win! R to play again.");
+        sfx_win.play();
+    }
+    // loss
+    else if (player->hp == 0) {
+        game_state = GAME_LOSE;
+        msg.setText("You lose. R to retry.");
     }
 }

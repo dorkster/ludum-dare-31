@@ -55,6 +55,7 @@ public:
     void enemyStartTurn();
     bool enemyAction();
     unsigned getCurrentLevel();
+    void checkWinLoss();
 
     int game_state;
 private:

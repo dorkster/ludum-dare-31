@@ -67,6 +67,9 @@ void GameEngine::logic() {
                 map_engine->playerStartTurn();
             }
         }
+
+        // check to see if we won the game or died
+        map_engine->checkWinLoss();
     }
     else {
         // win and lose both have the same post-game logic
