@@ -255,10 +255,10 @@ void MapEngine::setContextTiles() {
             float dist = calcDistance(player->pos, FPoint(j, i));
 
             // casting dist to int here rounds it so that we can attack our corners
-            if ((int)dist <= 1 && isEnemy(j, i)) {
+            if (dist <= 1 && isEnemy(j, i)) {
                 context_tiles[i][j] = CONTEXT_ENEMY;
             }
-            else if (dist <= 1 && isWalkable(j, i)) {
+            else if (dist <= player->ap && isWalkable(j, i)) {
                 context_tiles[i][j] = CONTEXT_WALKABLE;
             }
         }
@@ -359,30 +359,35 @@ bool MapEngine::playerAction() {
     }
 
     // TODO guard when targeting self?
-    if (player->pos.x == cursor_pos.x && player->pos.y == cursor_pos.y)
-        return false;
+    // for now, just end the turn
+    if (player->pos.x == cursor_pos.x && player->pos.y == cursor_pos.y) {
+        player->ap = 0;
+        return true;
+    }
 
     if (context_tiles[cursor_pos.y][cursor_pos.x] == CONTEXT_WALKABLE) {
         player->actionMove(cursor_pos.x, cursor_pos.y);
         player->sfx_move.play();
+        setContextTiles();
         setFogOfWar();
         checkPowerup();
         if (levels[current_level][cursor_pos.y][cursor_pos.x] == TILE_STAIRS_UP) {
             prevLevel();
-            return false;
+            player->ap = player->maxap;
         }
         else if (levels[current_level][cursor_pos.y][cursor_pos.x] == TILE_STAIRS_DOWN) {
             nextLevel();
-            return false;
+            player->ap = player->maxap;
         }
-        return true;
     }
     else if (context_tiles[cursor_pos.y][cursor_pos.x] == CONTEXT_ENEMY) {
         player->actionAttack(getEnemy(cursor_pos.x, cursor_pos.y));
-        return true;
     }
 
-    return false;
+    if (enemies[current_level].empty())
+        player->ap = player->maxap;
+
+    return player->ap == 0;
 }
 
 void MapEngine::spawnEnemies() {
@@ -518,65 +523,38 @@ bool MapEngine::enemyAction() {
     for (unsigned i=0; i<enemies[current_level].size(); i++) {
         Enemy* e = enemies[current_level][i];
 
+        if (e->isAnimating())
+            return false;
+
         if (e->hp == 0) {
             if (!e->isAnimating()) {
                 removeEnemy(e);
                 if (enemies[current_level].empty())
                     active_enemy = -1;
+                else {
+                    active_enemy = 0;
+                    enemies[current_level][active_enemy]->startTurn();
+                }
             }
             return false;
         }
     }
 
     Enemy* e = enemies[current_level][active_enemy];
-    if (e && e->is_turn)
-        cursor_pos = e->pos;
-    if (e && e->is_turn && !e->isAnimating()) {
-        if (e->action_ticks > 0)
-            e->action_ticks--;
-        else {
-            // move towards player
-            if (!e->isNearPlayer(1)) {
-                Point dest = e->pos;
-                if (e->isNearPlayer(4)) {
-                    if (e->pos.x > player->pos.x)
-                        dest.x--;
-                    else if (e->pos.x < player->pos.x)
-                        dest.x++;
-                    if (e->pos.y > player->pos.y)
-                        dest.y--;
-                    else if (e->pos.y < player->pos.y)
-                        dest.y++;
-                }
-                else {
-                    int dx = 0;
-                    int dy = 0;
-                    int fail_count = 3;
-                    while (dx == 0 && dy == 0 && fail_count > 0) {
-                        dx = (rand() % 3) - 1;
-                        dy = (rand() % 3) - 1;
-                        fail_count--;
-                    }
-                    dest.x += dx;
-                    dest.y += dy;
-                }
-                if (isWalkable(dest.x, dest.y)) {
-                    e->setPos(dest.x, dest.y);
-                    e->sfx_move.play();
-                }
-            }
-            // attack
-            else if (e->isNearPlayer(1)) {
-                e->actionAttack();
-            }
-
-            e->is_turn = false;
-        }
+    if (!e) {
+        // enemies aren't supposed to be NULL here, bailing out
+        active_enemy = -1;
+        return true;
     }
 
+    if (e->is_turn)
+        cursor_pos = e->pos;
+
+    e->logic(this);
+
     // turn can end during logic()
-    if (e && !e->is_turn) {
-        if ((unsigned)active_enemy+1 < enemies[current_level].size()) {
+    if (!e->is_turn) {
+        if ((unsigned)(active_enemy+1) < enemies[current_level].size()) {
             active_enemy++;
             enemies[current_level][active_enemy]->startTurn();
             return false;
@@ -646,4 +624,99 @@ void MapEngine::checkWinLoss() {
         game_state = GAME_LOSE;
         msg.setText("You lose. R to retry.");
     }
+}
+
+Point MapEngine::findPath(const Point& start, const Point& end) {
+    int nodes[MAP_H][MAP_W];
+    std::vector<Point> adj;
+
+    for (int i=0; i<MAP_H; i++) {
+        for (int j=0; j<MAP_W; j++) {
+            nodes[i][j] = -1;
+        }
+    }
+
+    int count = 0;
+    int adj_found = 0;
+    nodes[start.y][start.x] = count;
+    bool finished = false;
+
+    while (!finished) {
+        adj_found = 0;
+        for (int i=0; i<MAP_H; i++) {
+            for (int j=0; j<MAP_W; j++) {
+                if (nodes[i][j] == count) {
+                    adj.clear();
+                    adj.push_back(Point(j-1, i));
+                    adj.push_back(Point(j, i-1));
+                    adj.push_back(Point(j+1, i));
+                    adj.push_back(Point(j, i+1));
+
+                    for (unsigned k=0; k<adj.size(); k++) {
+                        Point& p = adj[k];
+
+                        if (p.x == end.x && p.y == end.y) {
+                            finished = true;
+                            break;
+                        }
+
+                        if (!isWalkable(p.x, p.y))
+                            continue;
+
+                        if (nodes[p.y][p.x] == -1 || nodes[p.y][p.x] > count+1) {
+                            nodes[p.y][p.x] = count+1;
+                            adj_found++;
+                        }
+                    }
+                }
+
+                // MAP_W
+                if (finished)
+                    break;
+            }
+
+            // MAP_H
+            if (finished)
+                break;
+        }
+
+        if (adj_found == 0) {
+            // could not find full path
+            finished = true;
+        }
+
+        if (!finished)
+            count++;
+    }
+
+    Point current = end;
+    Point next = current;
+    while (count > 0) {
+        int lowest = count+1;
+        int node = -1;
+
+        for (int i=-1; i<=1; i++) {
+            if (i == 0) continue;
+
+            node = nodes[current.y+i][current.x];
+            if (node != -1 && node < lowest) {
+                next.y = current.y+i;
+                lowest = node;
+            }
+            node = nodes[current.y][current.x+i];
+            if (node != -1 && node < lowest) {
+                next.x = current.x+i;
+                lowest = node;
+            }
+        }
+
+        // broken path
+        if (current.x == next.x && current.y == next.y)
+            return start;
+
+        current = next;
+        count--;
+    }
+
+    return current;
 }

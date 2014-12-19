@@ -19,11 +19,14 @@ public:
 
     Point pos;
     bool is_turn;
+    int view_distance;
 
     int hp;
     int maxhp;
     int attack;
     int defense;
+    int ap;
+    int maxap;
 
     Animation anim_normal;
     Animation anim_hurt;

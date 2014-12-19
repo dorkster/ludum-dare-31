@@ -18,14 +18,18 @@ void Player::init() {
     defense = 10;
     has_treasure = false;
     animating = false;
-    view_distance = 3;
+    view_distance = 6;
+    ap = maxap = 2;
 }
 
 void Player::startTurn() {
     is_turn = true;
+    if (ap == 0)
+        ap = maxap;
 }
 
 void Player::actionMove(int x, int y) {
+    ap -= calcDistance(pos, Point(x,y));
     setPos(x, y);
     is_turn = false;
 }
@@ -37,6 +41,8 @@ void Player::actionAttack(Enemy* e) {
     if (dmg <= 0) dmg = 1;
 
     e->takeDamage(dmg);
+
+    ap = 0;
 }
 
 void Player::bonusAttack(int amount) {

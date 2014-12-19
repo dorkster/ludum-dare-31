@@ -39,6 +39,9 @@ const int TILE_CRATE = 13;
 const int CONTEXT_WALKABLE = 0;
 const int CONTEXT_ENEMY = 1;
 
+class Enemy;
+class Player;
+
 class MapEngine {
 public:
     MapEngine();
@@ -57,10 +60,12 @@ public:
     unsigned getCurrentLevel();
     void checkWinLoss();
 
+    bool isWalkable(int x, int y);
+    Point findPath(const Point& start, const Point& end);
+
     int game_state;
 private:
     void setContextTiles();
-    bool isWalkable(int x, int y);
     bool isEnemy(int x, int y);
     bool isPowerup(int x, int y);
     void spawnEnemies();

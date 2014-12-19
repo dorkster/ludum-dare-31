@@ -33,7 +33,7 @@ void GameEngine::logic() {
     }
 
     std::stringstream ss;
-    ss << "Att:" << player.attack << " | Def:" << player.defense << " | Lvl:" << map_engine->getCurrentLevel();
+    ss << "AP:" << player.ap << " | Att:" << player.attack << " | Def:" << player.defense << " | Lvl:" << map_engine->getCurrentLevel();
     status_text.setText(ss.str());
 
     if (map_engine->game_state == GAME_PLAY) {
