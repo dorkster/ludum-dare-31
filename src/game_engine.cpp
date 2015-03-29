@@ -102,6 +102,11 @@ void GameEngine::logic() {
             // restart the game
             map_engine->init(&player);
         }
+        // when using a mouse, restart the game by clicking anywhere
+        else if (input_engine->pressing_mouse && !input_engine->lock_mouse) {
+            input_engine->lock_mouse = true;
+            map_engine->init(&player);
+        }
     }
 }
 
