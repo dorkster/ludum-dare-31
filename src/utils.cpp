@@ -20,6 +20,9 @@ Noman's Dungeon.  If not, see http://www.gnu.org/licenses/
 #include "common.h"
 #include "utils.h"
 
+int SCREEN_WIDTH = 224;
+int SCREEN_HEIGHT = 128;
+
 float rotate(float angle, float val) {
     angle += val;
 

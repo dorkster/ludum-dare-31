@@ -408,6 +408,23 @@ bool MapEngine::playerAction() {
     return player->ap == 0;
 }
 
+bool MapEngine::playerActionClick() {
+    Point click_pos;
+    click_pos.x = input_engine->mouse.x / TILE_SIZE;
+    click_pos.y = input_engine->mouse.y / TILE_SIZE;
+
+    if (click_pos.x == cursor_pos.x && click_pos.y == cursor_pos.y) {
+        return playerAction();
+    }
+    else if (click_pos.x >= 0 && click_pos.x < MAP_W && click_pos.y >= 0 && click_pos.y < MAP_H) {
+        cursor_pos = click_pos;
+        sfx_cursor.play();
+        return false;
+    }
+
+    return false;
+}
+
 void MapEngine::spawnEnemies() {
     int spawn_count = current_level+1;
     if (player->has_treasure)

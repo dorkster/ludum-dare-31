@@ -79,6 +79,12 @@ void GameEngine::logic() {
                     map_engine->enemyStartTurn();
                 }
             }
+            else if (input_engine->pressing_mouse && !input_engine->lock_mouse) {
+                input_engine->lock_mouse = true;
+                if (map_engine->playerActionClick()) {
+                    map_engine->enemyStartTurn();
+                }
+            }
         }
         else {
             if (map_engine->enemyAction()) {

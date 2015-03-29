@@ -30,23 +30,30 @@ RenderEngine::RenderEngine()
     SDL_DisplayMode desktop;
     SDL_GetDesktopDisplayMode(0, &desktop);
 
+#ifdef __ANDROID__
+    fullscreen = true;
+#else
+    fullscreen = false;
+#endif
+
     VIEW_W = 224;
     VIEW_H = 128;
 
     int window_w = (int)(desktop.w / 1.5f /VIEW_W) * VIEW_W;
     int window_h = (int)(desktop.h / 1.5f /VIEW_H) * VIEW_H;
 
-    // window = SDL_CreateWindow("game",
-    //                           SDL_WINDOWPOS_CENTERED,
-    //                           SDL_WINDOWPOS_CENTERED,
-    //                           desktop.w, desktop.h,
-    //                           SDL_WINDOW_FULLSCREEN_DESKTOP);
-    window = SDL_CreateWindow("Noman's Dungeon",
-                              SDL_WINDOWPOS_CENTERED,
-                              SDL_WINDOWPOS_CENTERED,
-                              window_w, window_h,
-                              0);
-    fullscreen = false;
+    if (fullscreen) {
+        window = SDL_CreateWindow("Noman's Dungeon", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 0, 0, SDL_WINDOW_FULLSCREEN_DESKTOP);
+    }
+    else {
+        window = SDL_CreateWindow("Noman's Dungeon", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, window_w, window_h, 0);
+    }
+
+    // touch input needs to know window size
+    int w,h;
+    SDL_GetWindowSize(window, &w, &h);
+    SCREEN_WIDTH = w;
+    SCREEN_HEIGHT = h;
 
     if (SOFTWARE_RENDER)
         renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
@@ -59,9 +66,6 @@ RenderEngine::RenderEngine()
     // load default text font
     if (TTF_Init() != -1)
         font = TTF_OpenFont("data/dejavu_sans_mono.ttf", 10);
-
-    // hide the mouse cursor
-    SDL_ShowCursor(0);
 }
 
 RenderEngine::~RenderEngine() {
@@ -152,12 +156,22 @@ void RenderEngine::renderText(Image* image, const std::string& text, Color _colo
 }
 
 void RenderEngine::toggleFullscreen() {
+#ifdef __ANDROID__
+    return;
+#endif
+
     if (fullscreen)
         SDL_SetWindowFullscreen(window, 0);
     else
         SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
 
     fullscreen = !fullscreen;
+
+    // touch input needs to know window size
+    int w,h;
+    SDL_GetWindowSize(window, &w, &h);
+    SCREEN_WIDTH = w;
+    SCREEN_HEIGHT = h;
 }
 
 void RenderEngine::cacheStore(const Image* image) {

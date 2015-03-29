@@ -22,6 +22,8 @@ Noman's Dungeon.  If not, see http://www.gnu.org/licenses/
 
 const int MAX_FRAMES_PER_SEC = 60;
 const int TILE_SIZE = 16;
+extern int SCREEN_WIDTH;
+extern int SCREEN_HEIGHT;
 
 class Point {
 public:

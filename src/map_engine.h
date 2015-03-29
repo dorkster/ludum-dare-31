@@ -73,6 +73,7 @@ public:
     void moveCursor(int direction);
     void playerStartTurn();
     bool playerAction();
+    bool playerActionClick();
     void enemyStartTurn();
     bool enemyAction();
     unsigned getCurrentLevel();

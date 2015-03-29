@@ -20,6 +20,8 @@ Noman's Dungeon.  If not, see http://www.gnu.org/licenses/
 
 InputEngine::InputEngine()
     : done(false)
+    , pressing_mouse(false)
+    , lock_mouse(false)
 {
     for (int i=0; i<KEY_COUNT; i++) {
         pressing[i] = false;
@@ -58,6 +60,29 @@ void InputEngine::logic() {
                         lock[i] = false;
                     }
                 }
+                break;
+            case SDL_MOUSEMOTION:
+                mouse.x = event.motion.x;
+                mouse.y = event.motion.y;
+                break;
+            case SDL_MOUSEBUTTONDOWN:
+                mouse.x = event.motion.x;
+                mouse.y = event.motion.y;
+                if (event.button.button == SDL_BUTTON_LEFT) {
+                    pressing_mouse = true;
+                }
+                break;
+            case SDL_MOUSEBUTTONUP:
+                mouse.x = event.motion.x;
+                mouse.y = event.motion.y;
+                if (event.button.button == SDL_BUTTON_LEFT) {
+                    pressing_mouse = false;
+                    lock_mouse = false;
+                }
+                break;
+            case SDL_FINGERMOTION:
+                mouse.x = (int)((event.tfinger.x + event.tfinger.dx) * SCREEN_WIDTH);
+                mouse.y = (int)((event.tfinger.y + event.tfinger.dy) * SCREEN_HEIGHT);
                 break;
             case SDL_QUIT:
                 done = true;
