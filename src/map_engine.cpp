@@ -46,7 +46,11 @@ void MapEngine::init(Player* _player) {
     dungeon_depth = 5;
     current_level = 0;
 
+#ifdef __ANDROID__
+    msg.setText("Tap on a colored tile to move/attack.");
+#else
     msg.setText("WASD = cursor. Enter = action.");
+#endif
     msg.setPos(2,0);
     first_turn = true;
 
@@ -652,13 +656,21 @@ void MapEngine::checkWinLoss() {
     // win
     if (player->has_treasure && current_level == 0 && levels[current_level][player->pos.y][player->pos.x] == TILE_STAIRS_UP) {
         game_state = GAME_WIN;
+#ifdef __ANDROID__
+        msg.setText("You win! Tap to play again.");
+#else
         msg.setText("You win! R to play again.");
+#endif
         sfx_win.play();
     }
     // loss
     else if (player->hp == 0) {
         game_state = GAME_LOSE;
+#ifdef __ANDROID__
+        msg.setText("You lose. Tap to retry.");
+#else
         msg.setText("You lose. R to retry.");
+#endif
     }
 }
 
