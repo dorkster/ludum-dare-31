@@ -28,8 +28,8 @@ data/*.xcf
 /pkg/android/obj/
 
 # Emscripten
-game.data
-game.html
-game.html.mem
-game.js
+index.data
+index.html
+index.html.mem
+index.js
 game_html.zip
