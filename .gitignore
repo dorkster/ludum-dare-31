@@ -27,3 +27,9 @@ data/*.xcf
 /pkg/android/libs/
 /pkg/android/obj/
 
+# Emscripten
+game.data
+game.html
+game.html.mem
+game.js
+game_html.zip

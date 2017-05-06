@@ -26,6 +26,10 @@ Noman's Dungeon.  If not, see http://www.gnu.org/licenses/
 #include "game_engine.h"
 #include "utils.h"
 
+#ifdef __EMSCRIPTEN__
+#include "emscripten.h"
+#endif
+
 GameEngine* game_engine = NULL;
 
 static void init() {
@@ -86,6 +90,17 @@ static void mainLoop () {
     }
 }
 
+#ifdef __EMSCRIPTEN__
+static void emscriptenMainLoop() {
+    input_engine->logic();
+    game_engine->logic();
+
+    render_engine->clear();
+    game_engine->render();
+    render_engine->commitFrame();
+}
+#endif
+
 static void cleanup() {
     delete game_engine;
     delete sound_engine;
@@ -113,6 +128,11 @@ int main(int argc, char* argv[]) {
     if (!done) {
         srand((unsigned int)time(NULL));
         init();
+
+#ifdef __EMSCRIPTEN__
+        emscripten_set_main_loop(emscriptenMainLoop, 60, 1);
+#endif
+
         mainLoop();
         cleanup();
     }

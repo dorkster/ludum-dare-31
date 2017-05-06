@@ -58,7 +58,11 @@ void logInfo(const char* format, ...) {
 
 	va_start(args, format);
 
+#ifndef __EMSCRIPTEN__
 	SDL_LogMessageV(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO, format, args);
+#else
+    vprintf(format, args);
+#endif
 
 	va_end(args);
 }
@@ -68,7 +72,11 @@ void logError(const char* format, ...) {
 
 	va_start(args, format);
 
+#ifndef __EMSCRIPTEN__
 	SDL_LogMessageV(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_ERROR, format, args);
+#else
+    vprintf(format, args);
+#endif
 
 	va_end(args);
 }
