@@ -20,10 +20,10 @@ data/*.xcf
 
 # Android
 /pkg/android/bin/
-/pkg/android/jni/SDL2/
-/pkg/android/jni/SDL2_image/
-/pkg/android/jni/SDL2_mixer/
-/pkg/android/jni/SDL2_ttf/
+/pkg/android/jni/SDL2
+/pkg/android/jni/SDL2_image
+/pkg/android/jni/SDL2_mixer
+/pkg/android/jni/SDL2_ttf
 /pkg/android/libs/
 /pkg/android/obj/
 
